@@ -1,0 +1,30 @@
+---
+description: Documentation standards for code and docs/
+globs: "**/*.{md,mdc}"
+alwaysApply: false
+---
+
+# Documentation
+
+## Human Docs (`docs/`)
+
+- **00-overview/** — reserved for vision, roadmap, and overview docs
+- **PROJECT_CONTEXT.md** (root) — current project state; update only when asked
+- **03-architecture/** — system design for humans
+- **04-adr/** — architecture decision records
+- **05-sprints/** — sprint plans and outcomes
+
+Do not duplicate Cursor rule content in Markdown. Rules live in `.cursor/rules/`.
+
+## When to Update Docs
+
+- Setup or onboarding changes → `README.md` or `CONTRIBUTING.md`
+- Architectural decisions → ADR in `docs/04-adr/`
+- Sprint completion → `docs/05-sprints/` and `PROJECT_CONTEXT.md` (when explicitly requested)
+- API changes → `docs/06-api/` when that section exists
+
+## Code Documentation
+
+- Self-documenting names over comments.
+- JSDoc only for public APIs in shared `packages/`.
+- Update `PROJECT_CONTEXT.md` only when explicitly requested by the contributor.
