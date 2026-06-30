@@ -1,0 +1,283 @@
+# Git Workflow
+
+> Human-readable mirror of [`../rules/02-git-workflow.mdc`](../rules/02-git-workflow.mdc). Cursor reads the `.mdc` file; edit both when updating this rule.
+
+Human summary: `CONTRIBUTING.md`
+
+## Purpose
+
+Ensure every Git operation follows the project's engineering workflow so history stays **clean, meaningful, and easy to understand**.
+
+Commits should tell a story. Branches should be short-lived. Releases should be reproducible from `main`. Even when working solo, use Pull Requests — not direct commits to long-lived branches.
+
+## Core Principles
+
+### Long-Lived Branches
+
+| Branch    | Role                                                         |
+| --------- | ------------------------------------------------------------ |
+| `main`    | Production-ready code. Every merge is a release or milestone. |
+| `develop` | Default integration branch. Latest completed work for the next release. |
+
+Both receive code **only through Pull Requests** — never direct commits or pushes (after bootstrap).
+
+### Branching Strategy
+
+All work starts from `develop` on short-lived branches:
+
+```
+develop
+  ├── feature/* | bugfix/* | docs/* | refactor/* | chore/*
+  │         └── PR (squash merge) ──► develop
+  │
+  └── release/vX.Y.Z ── PR (merge commit) ──► main ── tag vX.Y.Z
+```
+
+| Prefix      | Created from | Target PR | Example                          |
+| ----------- | ------------ | --------- | -------------------------------- |
+| `feature/`  | `develop`    | `develop` | `feature/authentication`         |
+| `bugfix/`   | `develop`    | `develop` | `bugfix/login-validation`        |
+| `docs/`     | `develop`    | `develop` | `docs/project-context`           |
+| `refactor/` | `develop`    | `develop` | `refactor/api-validation`        |
+| `chore/`    | `develop`    | `develop` | `chore/github-actions`           |
+| `release/`  | `develop`    | `main`    | `release/v0.1.0`                 |
+| `hotfix/`   | `main`       | `main` + `develop` | `hotfix/production-login` |
+
+No sprint numbers in branch names — track sprints in GitHub Projects and `docs/05-sprints/`.
+
+### Versioning
+
+Follow **Semantic Versioning**: `MAJOR.MINOR.PATCH` (e.g. `v1.4.2`).
+
+- **MAJOR** — incompatible API or breaking changes
+- **MINOR** — backward-compatible features
+- **PATCH** — backward-compatible bug fixes
+
+Tag releases on `main` after merging a `release/vX.Y.Z` branch.
+
+## Rules
+
+### Branch Naming
+
+Names must be **short**, **lowercase**, **kebab-case**, and **descriptive**.
+
+`<prefix>/<short-description>`
+
+### Commit Convention
+
+Use the **Conventional Commits** specification on **short-lived branches only** — never on `main` or `develop`.
+
+```
+<type>(<scope>): <Capitalized meaningful sentence>
+
+[body — required for major changes]
+```
+
+- **Types:** `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`, `perf`, `style`
+- **Scopes:** prefer `project`, `auth`, `api`, `ui`, `monorepo`, `repository`
+- Capitalize the first letter. Write imperatively ("Add…", "Implement…", "Configure…").
+- Keep subjects under ~72 characters where practical.
+
+### Commit Body Template
+
+Use for major commits:
+
+```
+<type>(<scope>): <Capitalized meaningful sentence>
+
+Why
+- ...
+
+What
+- ...
+
+Impact
+- ...
+```
+
+Example:
+
+```
+feat(auth): Implement JWT authentication with refresh tokens
+
+Why
+- Users need secure, stateless sessions across the API
+
+What
+- Add access and refresh token issuance
+- Store refresh tokens in Redis
+- Add token rotation on refresh
+
+Impact
+- All protected routes now require valid JWT
+- Existing sessions remain valid until expiry
+```
+
+### Issue Workflow
+
+We use **GitHub Issues** to track work.
+
+Whenever possible:
+
+- One issue represents one logical task.
+- One branch corresponds to one issue.
+- One Pull Request resolves one issue.
+
+Reference issues in PR descriptions or commit footers when applicable (e.g. `Fixes #23`).
+
+### Pull Requests
+
+Every logical unit of work goes through a PR — even when working solo.
+
+A PR must include:
+
+- **Summary** — what changed
+- **Motivation** — why it changed
+- **Testing performed** — how it was verified
+- **Related issue** — if applicable
+
+Also:
+
+- PR title matches commit convention.
+- Fill out `.github/pull_request_template.md`.
+- Target **`develop`** for feature, bugfix, docs, refactor, and chore branches.
+- Target **`main`** for release and hotfix branches only.
+
+### Merge Strategy
+
+| Source                                      | Target    | Method                |
+| ------------------------------------------- | --------- | --------------------- |
+| feature, bugfix, docs, refactor, chore      | `develop` | **Squash and merge**  |
+| `release/vX.Y.Z`                            | `main`    | **Create merge commit** |
+| `hotfix/*`                                  | `main`    | **Create merge commit** |
+
+After merging to `main`: tag `vX.Y.Z` and create a GitHub Release. Merge hotfix back into `develop`.
+
+### Branch Protection
+
+**Never recommend** direct commits or pushes to:
+
+- `main`
+- `develop`
+
+If the user is on either branch, recommend creating a short-lived branch first.
+
+### Best Practices
+
+- Keep branches short-lived.
+- Prefer multiple small PRs over one large PR.
+- Delete merged branches after completion.
+- Keep commits focused on one logical change.
+- Never mix refactoring and new features in the same commit unless unavoidable.
+- One PR = one logical unit of work.
+- Every release must be reproducible from `main`.
+
+### Recovery
+
+If the user accidentally commits to the wrong branch:
+
+- Recommend the **safest** recovery strategy first.
+- Explain implications before suggesting destructive Git commands.
+- Prefer **non-destructive** solutions (e.g. cherry-pick, new branch from correct base, revert).
+- Warn before suggesting `reset --hard`, force push, or history rewriting on shared branches.
+
+## Examples
+
+### ✅ Good branch names
+
+```
+feature/authentication
+feature/course-progress
+docs/project-context
+bugfix/login-validation
+release/v0.1.0
+```
+
+### ❌ Bad branch names
+
+```
+feature/new-feature-final-final
+feature/sprint-01-auth
+temp/fix
+test/my-changes
+mybranch
+```
+
+### ✅ Good commits
+
+```
+feat(auth): Implement JWT authentication with refresh tokens
+docs(project): Establish the initial engineering foundation and project documentation
+refactor(api): Simplify request validation using shared Zod schemas
+```
+
+### ✅ Good workflow
+
+```bash
+git checkout develop
+git pull
+git checkout -b feature/authentication
+# ... work, commit on feature branch ...
+git push -u origin feature/authentication
+# Open PR → develop, squash merge
+```
+
+### ❌ Bad workflow
+
+```bash
+git checkout develop
+git commit -m "add auth"          # direct commit to develop
+git checkout main
+git merge develop                 # merge without release PR
+git push origin main              # direct push to protected branch
+```
+
+## AI Behavior
+
+When suggesting Git commands or creating commits:
+
+- Follow this workflow automatically.
+- **Warn** if a command violates the strategy (e.g. commit on `main`, wrong merge type).
+- **Recommend a branch** if the user is currently on `develop` or `main`.
+- **Suggest meaningful commit messages** matching the convention.
+- **Suggest splitting** work into multiple commits or PRs when a change is too large or mixes concerns.
+
+**Never recommend:**
+
+- Force pushing shared branches (`git push --force` on `main`, `develop`, or open PR branches others may use)
+- Rebasing published shared branches
+- Disabling branch protection
+- Skipping Pull Requests to merge into `main` or `develop`
+- Destructive recovery commands without explaining risks and alternatives
+
+## Anti-patterns
+
+- **Direct commits to `main` or `develop`** — bypasses review and branch protection.
+- **Direct pushes to protected branches** — same risk; use PRs always.
+- **Sprint numbers in branch names** — couples branches to planning, not functionality.
+- **Vague branch names** — `mybranch`, `temp/*`, `test/*`, `fix-stuff`.
+- **Overlong or redundant names** — `feature/new-feature-final-final`.
+- **Mixing concerns in one commit** — feature + refactor + unrelated docs together.
+- **Giant PRs** — one PR that changes auth, UI, and database schema.
+- **Merge commits into `develop`** for feature work — use squash merge instead.
+- **Squash merging releases** — loses release boundary; use merge commit for `release/*` → `main`.
+- **Terse commit subjects** — `fix bug`, `update code`, `wip`.
+- **Committing on wrong branch** — work committed to `develop` instead of a short-lived branch.
+- **Leaving stale branches** — merged branches not deleted.
+- **Skipping PR template** — missing summary, motivation, or testing notes.
+- **Force push as first resort** — especially on shared or protected branches.
+
+## Exceptions
+
+### Bootstrap (Empty `main` / `develop`)
+
+When bootstrapping a new repository, the initial engineering foundation may be committed on a feature branch (e.g. `feature/engineering-foundation`) if no development workflow exists yet.
+
+Steps:
+
+1. Create a feature branch and commit all foundation work there.
+2. Open the first PR: `feature/*` → `develop` (squash merge).
+3. Branch all future work from `develop`; use smaller PRs into `develop`.
+4. Release via PR `develop` → `main` (merge commit), then tag.
+
+**After the `develop` branch is established, all subsequent work must follow this workflow.** Do not insist on feature branches before `develop` exists if the repository is still being bootstrapped.

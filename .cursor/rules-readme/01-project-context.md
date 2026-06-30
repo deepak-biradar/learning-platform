@@ -1,0 +1,133 @@
+# Learning Platform — Project Context
+
+> Human-readable mirror of [`../rules/01-project-context.mdc`](../rules/01-project-context.mdc). Cursor reads the `.mdc` file; edit both when updating this rule.
+
+## Purpose
+
+Give Cursor persistent context about what this project is, what phase it is in, and how to behave before writing code or documentation.
+
+**Mission:** Build a production-ready AI-powered learning platform where developers master **software engineering** by building real-world applications — not by consuming isolated tutorials.
+
+**Long-term vision:** Guide learners through the full product lifecycle: design, build, test, deploy, and maintain production-grade software. Multiple learning paths, AI-assisted mentoring and code review, progress tracking, and certificates — starting with one flagship path and scaling from there.
+
+**First learning path:** Build a Production-Ready SaaS using Modern TypeScript.
+
+**Current phase:** **Foundation** — establishing engineering standards, documentation, repository structure, and tooling before application code.
+
+Check `PROJECT_CONTEXT.md` for sprint status, active tasks, and recent decisions. Suggest updates to `PROJECT_CONTEXT.md` whenever project state changes, but never modify it automatically.
+
+## Core Principles
+
+### Product Goals
+
+- Teach engineering through building, not passive consumption
+- Deliver production-quality patterns learners can reuse in real careers
+- Integrate AI as a mentor and reviewer, not a shortcut around understanding
+- Support structured learning paths with measurable progress
+- Plan for auth, subscriptions, admin tooling, and certificates over time
+
+### Engineering Philosophy
+
+| Principle            | Meaning                                              |
+| -------------------- | ---------------------------------------------------- |
+| Documentation-first  | Decide and document before implementing              |
+| Production-first     | Patterns must be deployable and maintainable         |
+| AI-first             | Design workflows that leverage AI assistants well    |
+| Learn by building    | Every feature serves the learner's hands-on journey  |
+| Free-first           | Prefer free-tier tools where practical               |
+| Incremental-first    | Prefer small, reviewable changes over large rewrites |
+
+**Code quality over cleverness.** Prioritize maintainability, scalability, readability, and learning value over writing the shortest possible code.
+
+### Planned Architecture (High Level)
+
+| Layer     | Choice                                      |
+| --------- | --------------------------------------------- |
+| Structure | pnpm monorepo (Turborepo planned)             |
+| Frontend  | React + Vite + TypeScript                     |
+| Backend   | Node.js + TypeScript (Express planned)        |
+| Data      | PostgreSQL + Prisma                           |
+| Runtime   | Docker (local and deployment parity)          |
+
+Supporting stack (when introduced): Tailwind CSS, TanStack Query, Zustand, Redis, GitHub Actions.
+
+```
+apps/              — deployable applications
+packages/          — shared libraries and configs
+docs/              — human-facing documentation (source of truth)
+docker/            — container definitions
+.cursor/rules/     — executable standards for Cursor (.mdc)
+.cursor/rules-readme/ — human-readable rule mirrors (.md)
+```
+
+## Rules
+
+### Before Generating Code
+
+1. Read `PROJECT_CONTEXT.md` for current phase and task.
+2. Check the relevant `docs/` section (architecture, API, ADR, etc.).
+3. Follow `.cursor/rules/` for engineering standards.
+4. Significant architectural decisions **must** be documented as an ADR in `docs/04-adr/` and **accepted before implementation**.
+
+### When Documentation and Implementation Diverge
+
+Do not assume either side is correct without verification:
+
+1. Verify which is intended.
+2. Update the documentation if the implementation is correct.
+3. Update the implementation if the documentation is correct.
+
+Documentation can become outdated — resolve conflicts deliberately, not automatically.
+
+### Ask Instead of Assuming
+
+If requirements are ambiguous, **ask for clarification** instead of making architectural assumptions. Do not invent requirements.
+
+### Dependencies
+
+Before introducing a new dependency:
+
+- Check whether an existing project dependency can solve the problem.
+- Justify the addition in the PR description.
+
+See `07-dependencies.mdc` for full rules.
+
+## Examples
+
+### ✅ Good
+
+- Read `docs/04-adr/` and `PROJECT_CONTEXT.md` before scaffolding the API layer.
+- Propose an ADR for auth strategy, wait for acceptance, then implement.
+- Ask which validation approach is preferred when the docs are silent.
+- Ship a focused PR that adds one module with tests and clear naming.
+
+### ❌ Bad
+
+- Hardcode Express middleware patterns before the backend ADR is accepted.
+- Add a new HTTP client library when the monorepo already includes one.
+- Rewrite an entire folder when a targeted fix suffices.
+- Silently skip updating stale docs when you notice a conflict.
+
+## AI Behavior
+
+When generating code or proposing changes:
+
+- Explain important architectural decisions.
+- Mention trade-offs.
+- Highlight potential risks.
+- Suggest improvements when appropriate.
+- Behave like a senior engineer, not just a code generator.
+
+**Never:**
+
+- Invent requirements when documentation is ambiguous — ask first.
+- Modify `PROJECT_CONTEXT.md` or other living docs without being asked.
+- Introduce dependencies, patterns, or folders without justification.
+
+## Anti-patterns
+
+- **Inventing requirements** — filling gaps with assumptions instead of asking.
+- **Documentation drift** — implementing without checking or updating relevant docs.
+- **Big-bang rewrites** — large unreviewable diffs that violate incremental-first.
+- **Dependency sprawl** — adding packages without checking existing tools or justifying the choice.
+- **Silent staleness** — noticing `PROJECT_CONTEXT.md` is out of date but saying nothing.
