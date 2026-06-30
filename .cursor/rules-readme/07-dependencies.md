@@ -1,0 +1,231 @@
+# Dependencies
+
+Source of truth: [`.cursor/rules/07-dependencies.mdc`](../rules/07-dependencies.mdc)
+
+## Purpose
+
+Define the project's dependency management philosophy, package selection criteria, versioning strategy, and AI behavior to ensure a **secure, maintainable, and lightweight** dependency ecosystem.
+
+Every dependency is a **long-term commitment** — it affects security posture, build times, bundle size, upgrade burden, and how easily new contributors onboard. Dependencies should be added deliberately, kept current responsibly, and removed when they no longer earn their place.
+
+## Core Principles
+
+| Principle | Meaning |
+| --------- | ------- |
+| Built-in first | Prefer platform APIs before introducing new packages |
+| Clear value | Every dependency must solve a problem better than rolling our own |
+| Minimize count | Fewer dependencies means fewer failure modes and upgrade chains |
+| Actively maintained | Prefer libraries with recent releases and responsive maintainers |
+| Well-documented and widely adopted | Community health reduces bus factor and integration risk |
+| Long-term maintainability | Favor stability and clarity over short-term convenience |
+| No overlap | One library per concern — avoid duplicate HTTP clients, date libs, etc. |
+
+### Scope
+
+Applies to all dependencies in `apps/`, `packages/`, and root workspace tooling. Security-specific dependency rules also follow `08-security.mdc`. Architectural placement follows `06-architecture.mdc`.
+
+Keep this rule **technology-agnostic** where practical — package manager (pnpm), bundler, and runtime details follow project config once established.
+
+## Rules
+
+### Dependency Evaluation Checklist
+
+Before recommending or adding a dependency, evaluate:
+
+| Question | Action if "no" |
+| -------- | -------------- |
+| Is there an **existing project dependency** that already solves this? | Reuse it — don't add a second library |
+| Can this be solved with **native JavaScript, TypeScript, Node.js, or browser APIs**? | Implement without a package |
+| Is the package **actively maintained**? | Prefer alternatives; flag abandoned packages |
+| Is **community adoption** healthy? | Treat niche packages with extra scrutiny |
+| Does it have **good documentation**? | Higher integration cost — justify explicitly |
+| Is it **compatible with our stack** (TypeScript, ESM/CJS, monorepo, target runtime)? | Reject or document workaround |
+| Does it introduce **unnecessary complexity**? | Prefer simpler alternatives |
+| Does it **increase bundle size significantly** (frontend)? | Measure; consider lighter alternatives |
+| Does it have **known security concerns**? | Do not add until resolved or mitigated |
+| Is the **license compatible** with our project? | Avoid restrictive licenses (GPL, etc.) unless explicitly approved |
+
+Community health is more than GitHub stars — weigh **recent releases**, **issue responsiveness**, **download trends**, and whether the package is the **de facto standard** in its ecosystem.
+
+Consider the size and maintenance burden of **transitive dependencies** before adding a package — installing one direct dependency may pull in dozens of transitive packages.
+
+If multiple packages pass the checklist, prefer the one **already used in this workspace**.
+
+### Adding New Dependencies
+
+- **Always justify** why a dependency is needed — in PR description or ADR when significant.
+- **Explain alternatives considered** — including native APIs and existing workspace packages.
+- **Avoid multiple libraries for the same purpose** — one HTTP client, one date library, one validation library.
+- **Keep dependencies focused** — packages that solve one problem well beat kitchen-sink utilities.
+- **Prefer official libraries when actively maintained and meeting project requirements** — community-maintained packages may be the de facto standard when official ones lag behind.
+- **Add to the most specific workspace package** that needs it — not the root unless shared across the monorepo.
+- **Update the lockfile** in the same change as dependency additions.
+
+Justification template (PR or comment):
+
+```
+Dependency: <name>
+Problem: <what it solves>
+Alternatives considered: <native API, existing package, roll-your-own>
+Why chosen: <clear value over alternatives>
+```
+
+### Updating Dependencies
+
+- **Keep dependencies reasonably up to date** — stale dependencies accumulate security and compatibility debt.
+- **Prefer incremental upgrades** over large version jumps spanning many major releases.
+- **Review breaking changes** — read changelogs and migration guides before upgrading.
+- **Update lock files together** with `package.json` changes — never commit one without the other.
+- **Test after upgrades** — run relevant unit, integration, and build checks for affected workspaces.
+- **Focused upgrade PRs** — one logical upgrade scope per PR when practical (e.g. one major ecosystem, not everything at once).
+
+### Versioning Strategy
+
+- **Semantic versioning** — understand what major, minor, and patch bumps mean before accepting upgrades.
+- **Prefer stable releases** — use GA versions in production dependencies.
+- **Avoid alpha/beta/rc** unless explicitly approved for a documented reason (ADR, spike, or user request).
+- **Pin consciously** — use appropriate ranges in `package.json`; avoid `*` or unbounded wildcards.
+- **Document exceptions** — when pinning an exact version or using a prerelease, note why in the PR or ADR.
+
+| Range style | When to use |
+| ----------- | ----------- |
+| `^` (caret) | Default for stable deps — accept compatible minor/patch updates |
+| `~` (tilde) | Stricter patch-only updates when minor bumps have caused issues |
+| Exact pin | Temporary workaround for a known bug — document and revisit |
+
+### Removing Dependencies
+
+When a dependency is no longer needed:
+
+- **Remove it completely** from `package.json` — don't leave unused entries.
+- **Remove unused configuration** — build plugins, ESLint extends, type shims tied to the package.
+- **Remove unused imports** — grep the workspace; no orphaned references.
+- **Update documentation** if the dependency was referenced in README, ADRs, or setup guides.
+- **Update the lockfile** after removal.
+
+Dead dependencies are **security and maintenance surface** with zero benefit.
+
+### Security
+
+- **Monitor for security advisories** — use tooling (Dependabot, `pnpm audit`, CI checks) when configured.
+- **Upgrade vulnerable packages promptly** — prioritize critical and high severity issues.
+- **Avoid abandoned packages** — no releases, unaddressed CVEs, archived repos.
+- **Never ignore critical security issues** without documented justification and a mitigation plan.
+
+Full security practices: `08-security.mdc`.
+
+### Monorepo Practices
+
+- **Shared logic in `packages/`** — don't duplicate dependencies across apps for the same utility.
+- **Workspace protocol** — prefer internal `@repo/*` packages over copying code between apps.
+- **Hoist deliberately** — root devDependencies for tooling shared across workspaces; runtime deps at the package that uses them.
+- **Consistent versions** — same external package should use the same version across workspaces unless intentionally different (document why).
+
+### Requires ADR Before Adding
+
+These categories affect architecture broadly — document in `docs/04-adr/` before introducing:
+
+- New database drivers or ORMs beyond the chosen stack (Prisma planned)
+- Alternative state management libraries beyond the chosen approach (Zustand planned)
+- New runtime or HTTP frameworks beyond the chosen backend (Express planned)
+- Competing libraries that overlap an established project standard
+
+### Decision Hierarchy
+
+When solving a problem, follow this order:
+
+```
+1. Existing internal solution
+        ↓
+2. Native platform API
+        ↓
+3. Existing project dependency
+        ↓
+4. Well-maintained new dependency
+        ↓
+5. Build a custom solution (only when justified)
+```
+
+Skip levels only with explicit justification in the PR or ADR.
+
+## Examples
+
+### ✅ Good dependency decisions
+
+```
+Use Zod for runtime validation — already in stack, TypeScript-first, single validation library
+Use native fetch (Node 18+) for HTTP — no axios/node-fetch needed for simple requests
+Use Intl.DateTimeFormat for display formatting — no date-fns for one format call
+Add bcrypt for password hashing — security-critical, well-maintained, not worth rolling own
+```
+
+### ❌ Poor dependency decisions
+
+```
+Add lodash for a single array deduplication — use [...new Set(arr)] or native methods
+Add moment.js alongside date-fns — two date libraries for overlapping jobs
+Add axios when fetch + existing HTTP wrapper already exists in the project
+Add left-pad for string padding — String.prototype.padStart exists
+Add an unmaintained package with open CVEs because "it worked in a tutorial"
+```
+
+### ✅ Native APIs preferable
+
+| Need | Prefer | Over |
+| ---- | ------ | ---- |
+| JSON parsing | `JSON.parse` / `JSON.stringify` | General-purpose JSON utility libs |
+| Array filtering/mapping | Native array methods | lodash for one-liners |
+| UUID generation | `crypto.randomUUID()` | uuid package (unless specific format required) |
+| Path joining (Node) | `path.join` | Path utility libraries |
+| Deep clone (simple cases) | `structuredClone()` | Clone libraries for shallow objects |
+| Date ISO strings | `Date.toISOString()` | Date formatting libraries for one export |
+
+### ❌ Avoid
+
+```
+Adding a package without checking workspace for existing solutions
+Upgrading 40 packages in one PR with no changelog review
+Leaving unused dependencies in package.json "just in case"
+```
+
+## AI Behavior
+
+When suggesting or adding dependencies:
+
+- **Search the existing workspace first** — grep `package.json` files and imports before recommending anything new.
+- **Search for similar internal utilities or shared packages** — the problem may already be solved in `packages/` or feature code, not only in declared dependencies.
+- **Reuse existing packages** whenever they solve the problem adequately.
+- **Explain why a dependency is recommended** — problem, alternatives, and clear value.
+- **Mention meaningful trade-offs** — bundle size, maintenance burden, learning curve, lock-in.
+- **Avoid unnecessary package proliferation** — don't add a dependency for trivial one-liners.
+- **Prefer consistency with the existing project** — match versions and libraries already in use.
+- **When multiple options are equally valid, explain trade-offs instead of choosing silently.**
+
+**Never:**
+
+- Add a dependency without stating what alternatives were considered.
+- Introduce a second library for a concern the project already covers.
+- Recommend alpha/beta packages for production without explicit approval.
+- Ignore security advisories on packages being added or upgraded.
+- Add dependencies to the root workspace when only one app needs them.
+
+## Anti-patterns
+
+- **Adding a package for a trivial utility** — one function does not justify a dependency.
+- **Multiple date libraries** — moment + date-fns + dayjs in the same monorepo.
+- **Multiple HTTP clients** — axios + got + node-fetch for the same app.
+- **Multiple validation libraries** — Zod + Joi + Yup solving the same boundary checks.
+- **Unmaintained packages** — last release years ago, ignored security issues.
+- **Blindly following trends** — adding libraries because a blog post recommended them.
+- **Adding without evaluating alternatives** — no checklist, no justification, no workspace search.
+- **Copy-paste dependencies** — importing a dependency list from another project without review.
+- **Upgrade avalanche** — bumping everything at once with no testing or changelog review.
+- **Zombie dependencies** — packages in `package.json` that nothing imports anymore.
+
+## Exceptions
+
+- **Dev-only tooling** (linters, test runners, build tools) — evaluation criteria apply; bundle size less relevant.
+- **Prerelease dependencies** — acceptable for approved spikes or when upstream fix is only available in beta (document in PR).
+- **Polyfills** — may be required for browser/target support; justify target coverage in PR.
+- **Monorepo tooling not yet initialized** — pnpm/Turborepo specifics follow project config once established; principles in this rule apply regardless.
+- **Deep third-party evaluation** (OSS governance, release cadence, bus factor, CVE history, bundle analysis, ESM/SSR compatibility) — out of scope for now; revisit via a future dedicated rule when building production features.
