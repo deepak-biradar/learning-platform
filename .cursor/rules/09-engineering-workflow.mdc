@@ -1,0 +1,296 @@
+---
+description: Standard engineering workflow for humans and AI assistants
+alwaysApply: true
+---
+
+# Engineering Workflow
+
+Human-readable: `.cursor/rules-readme/09-engineering-workflow.md`
+
+## Purpose
+
+Define the standard engineering workflow for implementing features, fixing bugs, performing refactoring, writing documentation, and collaborating within the project.
+
+**How do we build it?** Planning identifies work ([`docs/planning/README.md`](../../docs/planning/README.md)); this standard executes it.
+
+A **consistent workflow** improves code quality, maintainability, collaboration, and long-term project health. This standard guides **human developers and AI assistants** alike — work gets done the same way regardless of who writes the code.
+
+This is the **capstone engineering standard**. It complements — not replaces — the specialized standards in `.cursor/rules/`.
+
+## Development Philosophy
+
+We optimize for:
+
+- **Readability** — code and docs that teach, not obscure
+- **Maintainability** — structures that survive team and time changes
+- **Consistency** — one way to do common things across the monorepo
+- **Incremental delivery** — small, reviewable steps over big-bang releases
+- **Long-term quality** — production-ready patterns from day one
+- **Knowledge sharing** — every change should help future readers learn
+
+This project is **educational and production-oriented** — code should be correct *and* instructive.
+
+## Core Principles
+
+| Principle | Meaning |
+| --------- | ------- |
+| Understand before implementing | Know the problem, constraints, and acceptance criteria first |
+| Read before writing | Search existing code before adding new code |
+| Reuse before creating | Extend what exists — packages, patterns, utilities |
+| Keep changes focused | One logical change per branch and PR |
+| Leave it better | Fix small issues you touch; don't drive-by refactor unrelated code |
+| Document important decisions | ADRs and docs for anything costly to reverse |
+| Think before coding | Threat model, architecture, and trade-offs before typing |
+| Optimize after measurement | Profile first — see `03-coding-standards.mdc` and `06-architecture.mdc` |
+| Prefer incremental improvements | Small, reviewable steps over big-bang rewrites |
+
+### Scope
+
+**This document starts once a task has been selected from the planning system** ([`docs/planning/`](../../docs/planning/)). It does not own roadmap, backlog, or sprint planning — see [`docs/planning/README.md`](../../docs/planning/README.md).
+
+Applies to all engineering execution in this repository. Detailed standards live in sibling documents:
+
+| Topic | Standard |
+| ----- | -------- |
+| Project context & phase | `01-project-context.mdc` |
+| Git, branches, commits, PRs | `02-git-workflow.mdc` |
+| TypeScript, React, naming | `03-coding-standards.mdc` |
+| Documentation standards | `04-documentation.mdc` |
+| Testing | `05-testing.mdc` |
+| Architecture & layering | `06-architecture.mdc` |
+| Dependencies | `07-dependencies.mdc` |
+| Security | `08-security.mdc` |
+
+Planning system: [`docs/planning/README.md`](../../docs/planning/README.md). Human onboarding: `CONTRIBUTING.md`. Current state: `PROJECT_CONTEXT.md`.
+
+## Rules
+
+### Execution Workflow
+
+Treat every task like professional engineering — even when working solo. **Planning identifies work; this standard executes it.**
+
+```
+Task (from sprint plan)
+    ↓
+Feature Branch
+    ↓
+Implementation
+    ↓
+Self Review
+    ↓
+Pull Request
+    ↓
+Merge
+```
+
+- **Start from a sprint task** — every branch maps to a task in the active sprint (e.g. `S0-D1-T3`). See [`docs/planning/`](../../docs/planning/).
+- **One task → one branch → one PR** — see `02-git-workflow.mdc`.
+- **Never commit directly to `main` or `develop`** — short-lived branches only.
+- **Open a PR for every completed task** — even solo; PRs are the review record.
+
+### Before Writing Code
+
+Always:
+
+- **Understand the task** — goal, acceptance criteria, and constraints.
+- **Review sprint goals and deliverables** — confirm the task supports the current sprint objective in `docs/planning/sprint-N.md`.
+- **Clarify ambiguous requirements** — ask before assuming; flag gaps in the sprint task or PR.
+- **Search the existing codebase** — grep, file search, read neighboring modules.
+- **Review relevant documentation** — `PROJECT_CONTEXT.md`, `docs/`, README, API docs.
+- **Review applicable ADRs** — `docs/04-adr/` for decisions that affect the change.
+- **Identify existing patterns** — match folder layout, naming, and abstractions in the target area.
+- **Avoid duplicate implementations** — extend shared packages and utilities before creating parallel code.
+
+Pre-implementation checklist:
+
+```
+[ ] Task and acceptance criteria understood
+[ ] Sprint goals and deliverables reviewed
+[ ] Codebase searched for existing solutions
+[ ] Relevant docs and ADRs reviewed
+[ ] Approach aligns with architecture standard
+[ ] ADR needed? (if yes — draft before coding)
+```
+
+### During Implementation
+
+- **Follow project architecture** — correct layer and package; see `06-architecture.mdc`.
+- **Follow coding standards** — types, naming, error handling; see `03-coding-standards.mdc`.
+- **Reuse existing utilities** — hooks, services, validators, UI components, config modules.
+- **Keep commits logically grouped** — each commit is a coherent step; see `02-git-workflow.mdc`.
+- **Keep changes as small as practical** — easier review, easier rollback.
+- **Avoid unrelated refactoring** — don't mix cleanup with feature work unless explicitly scoped.
+- **Keep the project in a working state whenever practical** — don't leave broken lint, tests, or build for the next commit.
+- **Explain trade-offs** when introducing new patterns, dependencies, or folder structures.
+
+### Testing Workflow
+
+Whenever practical — full standards in `05-testing.mdc`:
+
+- **Add tests for new business logic** — unit first; integration at boundaries.
+- **Update tests when behavior changes** — no stale or broken tests left behind.
+- **Run affected tests** — verify locally before opening a PR.
+- **Keep tests deterministic** — no flakiness, no order dependency.
+- **Fix failing tests before continuing** — red builds block merge.
+
+### Documentation Workflow
+
+When changes affect behavior — full standards in `04-documentation.mdc`:
+
+- **Update README** where setup, usage, or project structure changes.
+- **Suggest `PROJECT_CONTEXT.md` updates** when sprint status or decisions change — never modify it automatically unless explicitly asked (see `01-project-context.mdc`).
+- **Create or update ADRs** for architectural decisions — accepted before implementation when significant.
+- **Update API documentation** when endpoints, contracts, or error shapes change.
+- **Keep examples in sync** — code samples in docs must match actual behavior.
+
+### Dependency Workflow
+
+Before adding a dependency — full standards in `07-dependencies.mdc`:
+
+- **Follow the dependency decision hierarchy** — internal solution → native API → existing dep → new dep.
+- **Check for existing solutions** in workspace and platform APIs.
+- **Justify the addition** — problem, alternatives, trade-offs in PR description.
+
+### Security Workflow
+
+During implementation — full standards in `08-security.mdc`:
+
+- **Validate inputs** at system boundaries.
+- **Consider authorization** on every protected operation — service layer, not UI alone.
+- **Protect sensitive data** — no secrets in code, logs, or client bundles.
+- **Review security implications** — lightweight threat modeling for sensitive features.
+- **Avoid introducing unnecessary risks** — secure defaults; explicitly opt into risk.
+
+### Code Review Mindset
+
+Before considering work complete, review for:
+
+| Area | Question |
+| ---- | -------- |
+| **Correctness** | Does it meet requirements? Edge cases and errors handled? |
+| **Readability** | Can a teammate understand this in six months? |
+| **Maintainability** | Right layer, right abstraction, no duplication? |
+| **Performance** | Obvious inefficiencies? Premature optimization avoided? |
+| **Security** | Input validated, auth enforced, no secrets leaked? |
+| **Testing** | Business logic covered? Tests updated? |
+| **Documentation** | ADR, README, API docs updated where needed? |
+| **Consistency** | Matches existing patterns in the target directory? |
+| **Learning** | Will someone learn from this code six months later? |
+
+Self-review checklist (use before opening PR):
+
+```
+[ ] Requirements satisfied
+[ ] Standards rules followed (03–08)
+[ ] Tests added/updated and passing
+[ ] Docs/ADR updated where needed
+[ ] No secrets, debug code, or unrelated changes
+[ ] PR description explains what and why
+```
+
+## Examples
+
+### ✅ Good workflow
+
+```
+Task S0-D2-T1 → confirm sprint deliverable → search codebase → read ADR-001
+→ branch chore/monorepo-pnpm → implement + test → PR with task ref → self-review → merge
+```
+
+### ❌ Poor workflow
+
+```
+Code without reading task → duplicate existing utils → mix unrelated changes
+→ skip tests → push to develop → no PR description
+```
+
+### ✅ Incremental delivery
+
+```
+PR 1: repository + tests  |  PR 2: API endpoint  |  PR 3: UI hook
+Each reviewable in ~15 minutes
+```
+
+### ❌ Big-bang / no ADR
+
+```
+One PR: schema + API rewrite + UI + dependency bumps — hard to review, hard to revert
+Add Redis event bus with no ADR when none exists
+```
+
+## AI Behavior
+
+When assisting with engineering work:
+
+- **Search existing code before generating new code** — workspace search is step one.
+- **Reuse established project patterns** — don't invent folder layouts or abstractions.
+- **Explain important architectural decisions** — especially when multiple placements exist.
+- **Suggest documentation updates** — ADRs, README, API docs when behavior or structure changes.
+- **Suggest tests** — for business logic, validation, auth, and regressions.
+- **Recommend ADRs** when a decision is costly to reverse or affects multiple packages.
+- **Highlight security considerations** — validation, authorization, secrets, threat modeling.
+- **Ask clarifying questions** when requirements are ambiguous — don't guess acceptance criteria.
+- **When multiple approaches are equally valid, explain trade-offs instead of choosing silently.**
+- **If a task spans multiple steps, recommend breaking it into smaller deliverables** — prefer several focused PRs over one huge change.
+- **Never invent project structure that does not exist** — read the repo before creating paths.
+- **Never silently introduce breaking architectural changes** — flag and discuss first.
+
+**Never:**
+
+- Commit, push, or merge without explicit user request.
+- Update `PROJECT_CONTEXT.md` or living docs unless explicitly asked.
+- Add dependencies without following `07-dependencies.mdc`.
+- Skip server-side validation or authorization because "it's just a prototype".
+- Create duplicate utilities when shared packages or native APIs suffice.
+- Produce large unrelated diffs when a focused change was requested.
+
+## Anti-patterns
+
+- **Writing code without understanding requirements** — coding before clarifying the task.
+- **Creating duplicate utilities** — third date formatter, fourth HTTP wrapper.
+- **Large unrelated changes** — feature + refactor + dependency bump in one PR.
+- **Skipping tests** — "tests later" that never arrive.
+- **Ignoring documentation** — behavior changed, docs stale.
+- **Introducing unnecessary abstractions** — interfaces and factories for one implementation.
+- **Premature optimization** — caching and memoization before profiling.
+- **Solving hypothetical future problems** — plugin systems before a second use case.
+- **Ignoring existing architecture** — business logic in UI, SQL in controllers.
+- **Working without a branch or PR** — direct commits to long-lived branches.
+- **Assuming docs are correct** — verify implementation against documentation when they diverge.
+
+## Definition of Done
+
+A task is complete when:
+
+- **Requirements are satisfied** — acceptance criteria met.
+- **Code follows project standards** — architecture, coding, security, dependencies.
+- **Tests pass** — new and existing; affected suites run locally or in CI.
+- **Documentation is updated** — README, ADRs, API docs, examples where applicable.
+- **No unnecessary dependencies were added** — each new package justified.
+- **Security considerations were reviewed** — validation, auth, secrets, threat model for sensitive paths.
+- **Code is ready for review** — self-review checklist complete; PR opened.
+- **Changes are committed** using the project's commit convention — see `02-git-workflow.mdc`.
+- **No TODOs without backlog reference** — use `// TODO(S0-D2-T5): Add pagination` or `Deferred to Backlog B-014`; not bare `// TODO fix later`.
+
+Done ≠ merged. Done means **ready for PR review**; merge follows team review (or self-review when solo).
+
+## Engineering Standards v1
+
+This document completes **Engineering Standards v1** — the foundational handbook for this project.
+
+From this point onward:
+
+- **Standards evolve** — improvements are incremental, not open-ended growth.
+- **New standards require a real need** — document the reason (ADR or planning decision) before adding files.
+- **Cursor consumes `.mdc` files** — humans read `.cursor/rules-readme/`; both stay in sync.
+- **These are engineering standards**, not editor-specific rules — valuable regardless of which AI tool or IDE is used.
+
+Tag the milestone **`engineering-standards-v1`** when the foundation PR merges.
+
+## Exceptions
+
+- **Bootstrap phase** — while `main`/`develop` are empty, work on a feature branch until first PR; see `02-git-workflow.mdc`.
+- **Spikes and prototypes** — time-boxed exploration on a branch; don't merge without bringing spike code up to Definition of Done standards.
+- **Urgent hotfixes** — `hotfix/*` from `main`; still require PR, tests where practical, and post-merge doc update.
+- **Documentation-only changes** — `docs/*` branches; testing N/A but review for accuracy and links.
+- **Planning docs not yet created** — `docs/planning/` sprint files pending Sprint 0 planning session; see [`docs/planning/README.md`](../../docs/planning/README.md) for structure.
